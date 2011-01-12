@@ -6,7 +6,7 @@ package com.akqa.utils
 	import flash.events.EventDispatcher;
 	import flash.external.ExternalInterface;
 
-	/*	 * JSBridge.as (a JS <-> AS/External Interface Helper)	 *	 * @author: AKQA	 * @version: 0.1	 * @date: May 21, 2010	 *	 */
+	/**	 * JSBridge.as (a JS <-> AS/External Interface Helper)	 *	 * @author: AKQA	 * @version: 0.1	 * @date: May 21, 2010	 *	 */
 	public class JSBridge extends EventDispatcher
 	{
 		public static const E_READY : String = "E_READY";
@@ -31,7 +31,7 @@ package com.akqa.utils
 		public function initialize( loaderInfo : LoaderInfo ) : void
 		{
 			_callback = loaderInfo.parameters[ "JSBridge_Callback" ];
-			_debugKey = loaderInfo.parameters[ "JSBridge_DebugKey" ];
+			_debugKey = loaderInfo.parameters[ "JSBridge_DebugKey" ];			
 			if ( ExternalInterface.available )
 			{
 				ready();
@@ -67,7 +67,7 @@ package com.akqa.utils
 			{
 				ExternalInterface.call( "console.log", ob );
 			}
-			catch(error : Error)
+			catch( error : Error )
 			{
 				trace( ob );
 			}
@@ -79,8 +79,8 @@ package com.akqa.utils
 		private function ready() : void
 		{
 			if ( _callback && _callback.length > 0 )
-				ExternalInterface.call( _callback );
-			addDebugLock();
+				ExternalInterface.call( _callback );				
+			addDebugLock();			
 			dispatchEvent( new Event( JSBridge.E_READY ) );
 		}
 

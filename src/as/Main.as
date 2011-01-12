@@ -1,9 +1,8 @@
 package
 {
-	import com.akqa.api.facebook.FacebookAPI;
+	import com.akqa.api.facebook.FacebookAuth;
 	import com.akqa.utils.DrawUtil;
 	import com.akqa.utils.JSBridge;
-	import com.facebook.graph.Facebook;
 
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -68,19 +67,20 @@ package
 		{
 			trace( "Main.initFacebook()" );
 
-			FacebookAPI.gi.init();
+			FacebookAuth.gi.init();
 		}
 
 		private function onButtonClickEvent( event : MouseEvent ) : void
 		{
+			trace("Main.onButtonClickEvent(event)");
 			if ( _connect.visible )
 			{
-				FacebookAPI.gi.login();
+				FacebookAuth.gi.login();
 				// Facebook.login( onFacebookLogin );
 			}
 			else
 			{
-				FacebookAPI.gi.logout();
+				FacebookAuth.gi.logout();
 				// Facebook.logout( onFacebookLogout );
 			}
 

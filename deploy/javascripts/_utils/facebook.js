@@ -43,16 +43,17 @@ var $fb = function() {
 
     // output to console
     var log = function(ob) {
+        if (!that.debug) return;
         try {
             console.log(ob);
         } catch(e) {
             // alert(ob);
-		}
+            }
     };
 
-	// FACEBOOK ASYNC. setup
+    // FACEBOOK ASYNC. setup
     window.fbAsyncInit = function() {
-        log('init app:' + that.app_id);
+        log('FB: fbAsyncInit: ' + that.app_id);
         FB.init({
             appId: that.app_id,
             status: true,
@@ -65,22 +66,13 @@ var $fb = function() {
     };
 
     var that = {
+        debug: false,
         app_id: '',
         session: {},
         xd_receiver: 'xd_receiver.htm',
         login_permissions: "publish_stream, offline_access, create_event, rsvp_event, sms",
         canvas_width: 760,
         canvas_height: 1800,
-        // should be set based on user agent
-        supports_popups: true,
-        // login params for older browser which do not support popups
-        login_dialog: {
-            body: "",
-            button: "Connect with Facebook",
-            width: null,
-            height: null
-        },
-        fmbl_dialog: null,
         // listeners
         on_init: function(response) {},
         on_login: function(response) {},
@@ -130,15 +122,9 @@ var $fb = function() {
 
     that.login = function() {
         log("FB: login: " + that.login_permissions);
-
-        if (that.supports_popups) {
-            FB.login(_on_login, {
-                perms: that.login_permissions
-            });
-        }
-        else {
-            _show_login_dialog();
-        }
+        FB.login(_on_login, {
+            perms: that.login_permissions
+        });
     };
 
     that.logout = function() {
@@ -146,7 +132,14 @@ var $fb = function() {
         FB.logout(_on_logout);
     };
 
+    that.get_session = function() {
+        log("FB: get_session");
+        return that.session.access_token ? that.session: _get_session_from_cookie();
+        // if we didn't get the session, we need it somehow for IE
+    };
+
     that.get_access_token = function() {
+        log("FB: get_access_token");
         return that.session.access_token ? that.session.access_token: _get_access_token_from_cookie();
         // if we didn't get the access on the session, we need it somehow for IE
     };
@@ -171,72 +164,17 @@ var $fb = function() {
         });
     };
 
-    var _create_login_dialog = function() {
-        fbml = ''
-        + '<div style="font-size:50%; clear:both;">'
-        + that.login_dialog.body
-        + '</div>'
-        + '<div style="text-align: center; clear:both;">'
-        + '<fb:login-button v="2" size="large" perms="'
-        + that.login_permissions
-        + '">'
-        + that.login_dialog.button
-        + '</fb:login-button>'
-        + '</div>';
-
-        _create_fbml_dialog(fbml, that.login_dialog.width, that.login_dialog.height);
-    };
-
-    var _create_fbml_dialog = function(fbml, width, height) {
-        fbml = "" || fbml;
-        width = 0 || width;
-        height = 0 || height;
-
-        if (!that.fmbl_dialog)
-        that.fmbl_dialog =
-        FB.Dialog._findRoot(
-        FB.Dialog.create({
-            content: (
-            '<div class="fb_dialog_loader">'
-            // +'<a id="fb_dialog_loader_close"></a><br/>'
-            + '<a id="fb_dialog_loader_close" style="float:right;"></a>'
-            + '<div style="width:' + width + 'px;height:' + height + 'px; clear:both;">'
-            + FB.Intl._tx(fbml)
-            + '</div>'
-            + '</div>')
-        }));
-
-        var close_btn = FB.$('fb_dialog_loader_close');
-        FB.Dom.addCss(close_btn, 'fb_dialog_top_right');
-        close_btn.onclick = _hide_fbml_dialog;
-    };
-
-    var _show_login_dialog = function() {
-        //$fb.show_fbml_dialog();
-        };
-
-    var _hide_login_dialog = function() {
-        //$fb.hide_fbml_dialog();
-        };
-
     var _on_init = function() {
-        log("FB: _on_init")
-        that.set_canvas_size();
-        // create the login Dialog (so the inner XFBML is rendered before needed)
-        if (!that.supports_popups) {
-            _create_login_dialog();
-        }
-        // setup listeners
+        log("FB: _on_init");
+        _get_session_from_cookie();
         _init_listeners();
-        // check the login status
+        that.set_canvas_size();
         that.get_login_status();
-        // listener (user overriden)
         that.on_init();
     };
 
     var _on_login = function(response) {
         log("FB: _on_login");
-        _hide_login_dialog();
         that.on_login(response);
         if (response.session) {
             that.on_login_ok(response);
@@ -253,7 +191,6 @@ var $fb = function() {
     var _on_login_status_authorized = function() {
         log("FB: _on_login_status_authorized - Logged in and connected user, someone you know")
         that.on_login_status_authorized();
-        //$fb.get_user();
     };
 
     var _on_login_status_unauthorized = function() {
@@ -263,14 +200,41 @@ var $fb = function() {
 
     var _on_login_change_authorized = function() {
         log("FB:  Event - _on_login_change_authorized - A user has logged in, and a new cookie has been saved");
-        _hide_login_dialog();
         that.on_login_change_authorized();
-        //$fb.get_user();
     };
 
     var _on_login_change_unauthorized = function() {
         log("FB:  Event - _on_login_change_unauthorized - The user has logged out, and the cookie has been cleared");
         that.on_login_change_unauthorized();
+    };
+
+    var _get_session_from_cookie = function() {
+        log("FB: _get_session_from_cookie");
+        // The cookie set by FB on the canvas iFrame looks something like this:
+        // access_token = 107783515931011 % 7C2.DxkvtKur_HF0JasR27X_1g__.3600.1294797600 - 759555051 % 7CAHAIhiypxRky2L3fuPtg2eE4uYE
+        // & expires = 1294797600
+        // & secret = JmoHNKpaa9fhCpE6EPpXqw__
+        // & session_key = 2.DxkvtKur_HF0JasR27X_1g__.3600.1294797600 - 759555051
+        // & sig = 4dacf8b3bbdbe28b3f229226c7604a2e
+        // & uid = 759555051
+        var session = {};
+        var str = document.cookie;
+        str = str.substring(str.indexOf("\"") + 1, str.lastIndexOf("\""));
+        if (str === null || str.length === 0) {
+            return session;
+        }
+        var pairs = str.split("&");
+        if (pairs.length === 0) {
+            return session;
+        }
+        var arr;
+        var pair;
+        for each(pair in pairs) {
+            arr = pair.split("=");
+            session[arr[0]] = arr[1];
+        }
+
+        return session;
     };
 
     var _get_access_token_from_cookie = function() {

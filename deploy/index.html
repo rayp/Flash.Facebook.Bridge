@@ -15,10 +15,14 @@
 	<script type="text/javascript" src="javascripts/_flash/flash_embed.js"></script>
 	<script type="text/javascript" src="javascripts/_flash/flash_facebook.js"></script>
 	<script type="text/javascript">
+		// Inject values here
 		// Custom JS will override
-		$fb.app_id = "107783515931011";
-		$fb.login_permissions = "publish_stream";
-		FBAS.setSWFObjectID($f.id);
+		(function() {
+		    $fb.app_id = "107783515931011";
+			$f.app_version = 0000;
+			$f.use_cache_breaker = true;
+			$f.debug = $fb.debug = $fbas.debug = true;
+		} ());
 	</script>
 	<script type="text/javascript" src="javascripts/flash_custom.js"></script>
 </html>

@@ -1,4 +1,4 @@
-package com.akqa.api.facebook.models.abstract
+package com.akqa.api.facebook.data.abstract
 {
 	import com.adobe.serialization.json.JSON;
 

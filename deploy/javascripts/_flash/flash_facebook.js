@@ -1,3 +1,85 @@
+var $fbas = function() {
+
+    var log = function(ob) {
+        if (!that.debug) return;
+        try {
+            console.log(ob);
+        } catch(e) {
+            // alert(ob);
+            }
+    }
+
+    // JS >> AS
+    // Prepare functions that will be called inside the Flash
+	var _on_init = function(args) {
+        log("FBAS: _on_init");
+        $f.ei.on_ready(args);
+    };
+    var _on_login_ok = function(args) {
+        log("FBAS: _on_login_ok");
+        $f.ei.on_logged_in(args);
+    };
+    var _on_login_cancel = function(args) {
+        log("FBAS: _on_login_cancel");
+        $f.ei.on_login_cancel(args);
+    };
+    var _on_logout = function(args) {
+        log("FBAS: _on_logout");
+        $f.ei.on_logged_out(args);
+    };
+    var _on_login_change = function(args) {
+        log("FBAS: _on_login_change");
+        $f.ei.on_login_change(args);
+    };
+
+    var that = {
+        debug: false
+    };
+
+    that.init = function() {
+
+        $f.on_ready = function() {
+            // Initialize FACEBOOK when FLASH is ready
+            log("FBAS: on_ready");
+            $fb.init();
+        };
+
+        // FB >> JS
+        // Listen for events from Facebook
+        $fb.on_init = _on_init;
+        $fb.on_login_ok = _on_login_ok;
+        $fb.on_login_cancel = _on_login_cancel;
+        $fb.on_logout = _on_logout;
+        $fb.on_login_change_authorized = _on_login_change;
+        $fb.on_login_change_unauthorized = _on_login_change;
+    };
+
+    // AS >> JS
+    // Prepare function to be called from the Flash
+    that.login = function() {
+        log("FBAS: fb_login");
+        $fb.login();
+    };
+    that.logout = function() {
+        log("FBAS: fb_logout");
+        $fb.logout();
+    };
+    that.get_login_status = function() {
+        log("FBAS: fb_get_login_status");
+        $fb.get_login_status();
+    };
+    that.get_session = function() {
+        log("FBAS: get_session");
+        return $fb.get_session();
+    };
+    that.get_access_token = function() {
+        log("FBAS: get_access_token");
+        return $fb.get_access_token();
+    };
+
+    return that;
+} ();
+
 FBAS = function() {
     return {
 
@@ -93,7 +175,7 @@ FBAS = function() {
 
         updateSwfSession: function(session, extendedPermissions) {
             swf = FBAS.getSwf();
-            extendedPermissions = (extendedPermissions == null) ? '' : extendedPermissions;
+            extendedPermissions = (extendedPermissions == null) ? '': extendedPermissions;
             if (session == null) {
                 swf.sessionChange(null);
             } else {
