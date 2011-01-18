@@ -1,115 +1,49 @@
 package
 {
-	import com.akqa.api.facebook.FacebookAuth;
-	import com.akqa.utils.DrawUtil;
+	import com.akqa.api.facebook.Facebook;
+	import com.akqa.api.facebook.events.FacebookEvent;
 	import com.akqa.utils.JSBridge;
-
+	import com.akqa.views.MainView;
 	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.events.MouseEvent;
 
 	public class Main extends Sprite
 	{
-		private var _connect : Sprite;
-		private var _disconnect : Sprite;
+		private var _view : MainView;
 
 		public function Main()
 		{
-			addEventListener( Event.ADDED_TO_STAGE, onAddedToStage );
+			addEventListener( Event.ADDED_TO_STAGE, function( event : Event ) : void
+			{
+				initJSBridge();
+			} );
 		}
 
 		private function initJSBridge() : void
 		{
-			JSBridge.gi.addEventListener( JSBridge.E_READY, onJSBridgeReady );
+			JSBridge.gi.addEventListener( JSBridge.E_READY, function( event : Event ) : void
+			{
+				initFacebook();
+			} );
+
 			JSBridge.gi.initialize( loaderInfo );
-		}
-
-		private function addButtons() : void
-		{
-			_connect = getButton( "CONNECT" );
-			_disconnect = getButton( "DISCONNECT" );
-			_disconnect.visible = false;
-		}
-
-		private function addDisplayObjects() : void
-		{
-			addButtons();
-		}
-
-		private function getButton( label : String ) : Sprite
-		{
-			var s : Sprite = new Sprite();
-			s.mouseChildren = false;
-			s.mouseEnabled = true;
-			s.buttonMode = true;
-			s.useHandCursor = true;
-			s.addEventListener( MouseEvent.CLICK, onButtonClickEvent );
-
-			DrawUtil.drawWireFrame( s, 200, 50, label );
-
-			addChild( s );
-
-			return s;
-		}
-
-		private function onAddedToStage( event : Event ) : void
-		{
-			initJSBridge();
-		}
-
-		private function onJSBridgeReady( event : Event ) : void
-		{
-			initFacebook();
-			addDisplayObjects();
 		}
 
 		private function initFacebook() : void
 		{
-			trace( "Main.initFacebook()" );
+			Facebook.gi.addEventListener( FacebookEvent.READY, function( event : Event ) : void
+			{
+				initViews();
+			} );
 
-			FacebookAuth.gi.init();
+			Facebook.gi.init();
 		}
 
-		private function onButtonClickEvent( event : MouseEvent ) : void
+		private function initViews() : void
 		{
-			trace("Main.onButtonClickEvent(event)");
-			if ( _connect.visible )
-			{
-				FacebookAuth.gi.login();
-				// Facebook.login( onFacebookLogin );
-			}
-			else
-			{
-				FacebookAuth.gi.logout();
-				// Facebook.logout( onFacebookLogout );
-			}
+			_view = new MainView();
 
-			_connect.visible = !_connect.visible;
-			_disconnect.visible = !_connect.visible;
-		}
-
-		private function onFacebookLogin( response : Object, fail : Object ) : void
-		{
-			if ( response )
-			{
-				trace( "Login successful" );
-			}
-			else
-			{
-				trace( "Login unsuccessful" );
-			}
-		}
-
-		private function onFacebookLogout( response : Object, fail : Object ) : void
-		{
-			if ( response )
-			{
-				trace( "Logout successful" );
-			}
-			else
-			{
-				trace( "Logout unsuccessful" );
-			}
+			addChild( _view );
 		}
 	}
 }

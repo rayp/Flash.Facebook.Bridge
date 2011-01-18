@@ -79,10 +79,10 @@ var $fb = function() {
         on_logout: function(response) {},
         on_login_ok: function(response) {},
         on_login_cancel: function(response) {},
-        on_login_status_authorized: function() {},
-        on_login_status_unauthorized: function() {},
-        on_login_change_authorized: function() {},
-        on_login_change_unauthorized: function() {},
+        on_status_change_authorized: function() {},
+        on_status_change_unauthorized: function() {},
+        on_session_change_authorized: function() {},
+        on_session_change_unauthorized: function() {},
         on_dialog_close: function() {}
     };
 
@@ -112,10 +112,10 @@ var $fb = function() {
                     that.session[i] = response.session[i];
                 }
 
-                _on_login_status_authorized();
+                _on_status_change_authorized();
             } else {
                 // no user session available, someone you don't know
-                _on_login_status_unauthorized();
+                _on_status_change_unauthorized();
             }
         });
     };
@@ -134,7 +134,7 @@ var $fb = function() {
 
     that.get_session = function() {
         log("FB: get_session");
-        return that.session.access_token ? that.session: _get_session_from_cookie();
+        return that.session.access_token ? that.session: ( that.session = _get_session_from_cookie() );
         // if we didn't get the session, we need it somehow for IE
     };
 
@@ -144,23 +144,47 @@ var $fb = function() {
         // if we didn't get the access on the session, we need it somehow for IE
     };
 
+    that.subscribe = function(event, handler) {
+        log("FB: subscribe");
+        FB.Event.subscribe(event, handler);
+    };
+
+    that.unsubscribe = function(event, handler) {
+        log("FB: unsubscribe");
+        FB.Event.unsubscribe(event, handler);
+    };
+
     // Private Methods
     var _init_listeners = function() {
         FB.Event.subscribe('auth.sessionChange',
         function(response) {
             if (response.session) {
                 // A user has logged in, and a new cookie has been saved
-                _on_login_change_authorized();
+                _on_session_change_authorized();
             } else {
                 // The user has logged out, and the cookie has been cleared
-                _on_login_change_unauthorized();
+                _on_session_change_unauthorized();
+            }
+        });
+        FB.Event.subscribe('auth.statusChange',
+        function(response) {
+            if (response.session) {
+                // A user has logged in, and a new cookie has been saved
+                _on_session_change_authorized();
+            } else {
+                // The user has logged out, and the cookie has been cleared
+                _on_session_change_unauthorized();
             }
         });
         FB.Event.subscribe('auth.login',
         function(response) {
             // do something with response
             log("FB: Event - auth.login - The user has logged in");
-            //$fb.get_user();
+        });
+        FB.Event.subscribe('auth.logout',
+        function(response) {
+            // do something with response
+            log("FB: Event - auth.logout - The user has logged out");
         });
     };
 
@@ -188,24 +212,24 @@ var $fb = function() {
         that.on_logout(response);
     };
 
-    var _on_login_status_authorized = function() {
-        log("FB: _on_login_status_authorized - Logged in and connected user, someone you know")
-        that.on_login_status_authorized();
+    var _on_status_change_authorized = function() {
+        log("FB: _on_status_change_authorized - Logged in and connected user, someone you know")
+        that.on_status_change_authorized();
     };
 
-    var _on_login_status_unauthorized = function() {
-        log("FB: _on_login_status_unauthorized - No user session available, someone you dont know")
-        that.on_login_status_unauthorized();
+    var _on_status_change_unauthorized = function() {
+        log("FB: _on_status_change_unauthorized - No user session available, someone you dont know")
+        that.on_status_change_unauthorized();
     };
 
-    var _on_login_change_authorized = function() {
-        log("FB:  Event - _on_login_change_authorized - A user has logged in, and a new cookie has been saved");
-        that.on_login_change_authorized();
+    var _on_session_change_authorized = function() {
+        log("FB:  Event - _on_session_change_authorized - A user has logged in, and a new cookie has been saved");
+        that.on_session_change_authorized();
     };
 
-    var _on_login_change_unauthorized = function() {
-        log("FB:  Event - _on_login_change_unauthorized - The user has logged out, and the cookie has been cleared");
-        that.on_login_change_unauthorized();
+    var _on_session_change_unauthorized = function() {
+        log("FB:  Event - _on_session_change_unauthorized - The user has logged out, and the cookie has been cleared");
+        that.on_session_change_unauthorized();
     };
 
     var _get_session_from_cookie = function() {
@@ -217,24 +241,24 @@ var $fb = function() {
         // & session_key = 2.DxkvtKur_HF0JasR27X_1g__.3600.1294797600 - 759555051
         // & sig = 4dacf8b3bbdbe28b3f229226c7604a2e
         // & uid = 759555051
-        var session = {};
+        that.session = {};
         var str = document.cookie;
         str = str.substring(str.indexOf("\"") + 1, str.lastIndexOf("\""));
         if (str === null || str.length === 0) {
-            return session;
+            return that.session;
         }
         var pairs = str.split("&");
         if (pairs.length === 0) {
-            return session;
+            return that.session;
         }
         var arr;
         var pair;
         for each(pair in pairs) {
             arr = pair.split("=");
-            session[arr[0]] = arr[1];
+            that.session[arr[0]] = arr[1];
         }
 
-        return session;
+        return that.session;
     };
 
     var _get_access_token_from_cookie = function() {

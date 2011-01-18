@@ -11,7 +11,7 @@ var $fbas = function() {
 
     // JS >> AS
     // Prepare functions that will be called inside the Flash
-	var _on_init = function(args) {
+    var _on_init = function(args) {
         log("FBAS: _on_init");
         $f.ei.on_ready(args);
     };
@@ -57,15 +57,34 @@ var $fbas = function() {
     // AS >> JS
     // Prepare function to be called from the Flash
     that.login = function() {
-        log("FBAS: fb_login");
-        $fb.login();
+        if ($fb.session.access_token) {
+            log("FBAS: fb_login : Session exists, skip login popup.");
+			_on_login_ok();
+        } else {
+            log("FBAS: fb_login : Session does not exist, proceed with login popup.");
+            $fb.login();
+        }
     };
     that.logout = function() {
         log("FBAS: fb_logout");
         $fb.logout();
     };
+    that.subscribe = function(event, handler) {
+        log("FBAS: subscribe");
+        $fb.subscribe(event,
+        function(response) {
+            $f.ei.handler(event, response);
+        });
+    };
+    that.unsubscribe = function(event, handler) {
+        log("FBAS: unsubscribe");
+        $fb.unsubscribe(event,
+        function(response) {
+            $f.ei.handler(event, response);
+        });
+    };
     that.get_login_status = function() {
-        log("FBAS: fb_get_login_status");
+        log("FBAS: get_login_status");
         $fb.get_login_status();
     };
     that.get_session = function() {

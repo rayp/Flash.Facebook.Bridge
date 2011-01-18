@@ -1,5 +1,4 @@
-﻿/** * * HOW TO USE: * *import com.akqa.utils.JSBridge;private function initBridge () : void{JSBridge.gi.addEventListener(JSBridge.E_READY, onJSBridgeReady);JSBridge.gi.initialize( this.loaderInfo );}private function onJSBridgeReady(e:Event):void{trace("JSBridge Ready");JSBridge.gi.call("alert", "hello from flash!");JSBridge.gi.addCallback("hello_from_js");} * * * */
-package com.akqa.utils
+﻿package com.akqa.utils
 {
 	import flash.display.LoaderInfo;
 	import flash.events.Event;
@@ -11,6 +10,7 @@ package com.akqa.utils
 	{
 		public static const E_READY : String = "E_READY";
 		private static var _instance : JSBridge;
+		private static var _debug : Boolean;
 		private var _callback : String;
 		private var _debugKey : String;
 		private var _debugCallbacks : Array = new Array();
@@ -31,7 +31,9 @@ package com.akqa.utils
 		public function initialize( loaderInfo : LoaderInfo ) : void
 		{
 			_callback = loaderInfo.parameters[ "JSBridge_Callback" ];
-			_debugKey = loaderInfo.parameters[ "JSBridge_DebugKey" ];			
+			_debugKey = loaderInfo.parameters[ "JSBridge_DebugKey" ];
+			_debug = ( loaderInfo.parameters[ "debug" ] == "true" );
+
 			if ( ExternalInterface.available )
 			{
 				ready();
@@ -63,13 +65,16 @@ package com.akqa.utils
 
 		public static function log( ob : Object ) : void
 		{
-			try
+			if ( _debug )
 			{
-				ExternalInterface.call( "console.log", ob );
-			}
-			catch( error : Error )
-			{
-				trace( ob );
+				try
+				{
+					ExternalInterface.call( "console.log", ob );
+				}
+				catch( error : Error )
+				{
+					trace( ob );
+				}
 			}
 		}
 
@@ -79,8 +84,8 @@ package com.akqa.utils
 		private function ready() : void
 		{
 			if ( _callback && _callback.length > 0 )
-				ExternalInterface.call( _callback );				
-			addDebugLock();			
+				ExternalInterface.call( _callback );
+			addDebugLock();
 			dispatchEvent( new Event( JSBridge.E_READY ) );
 		}
 
@@ -91,7 +96,7 @@ package com.akqa.utils
 
 		private function unlockDebugInterface( key : String ) : void
 		{
-			trace( "JSBridge.unlockDebugInterface(" + key + ")" );
+			log( "JSBridge.unlockDebugInterface(" + key + ")" );
 			if ( key && key == _debugKey )
 			{
 				log( "You are now in debug mode." );

@@ -1,6 +1,6 @@
 (function() {
     // Set params
-    $fb.login_permissions = "publish_stream";
+    $fb.login_permissions = "publish_stream, offline_access";
 	$f.alternate_html = '<a href"http://get.adobe.com/flashplayer/">' +
 						'<img' +
 						' alt="Get Adobe Flash Player"' +
