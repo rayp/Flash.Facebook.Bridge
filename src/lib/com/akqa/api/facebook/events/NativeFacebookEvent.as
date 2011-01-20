@@ -1,5 +1,6 @@
 package com.akqa.api.facebook.events
 {
+
 	public class NativeFacebookEvent
 	{
 		// Types
@@ -48,6 +49,15 @@ package com.akqa.api.facebook.events
 		public function get type() : String
 		{
 			return _type;
+		}
+
+		public function toString() : String
+		{
+			var s : String = "";
+			s += "[";
+			s += "NativeFacebookEvent : " + type;
+			s += "]";
+			return s;
 		}
 	}
 }

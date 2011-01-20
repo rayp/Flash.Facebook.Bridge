@@ -134,7 +134,7 @@ var $fb = function() {
 
     that.get_session = function() {
         log("FB: get_session");
-        return that.session.access_token ? that.session: ( that.session = _get_session_from_cookie() );
+        return that.session.access_token ? that.session: (that.session = _get_session_from_cookie());
         // if we didn't get the session, we need it somehow for IE
     };
 
@@ -145,13 +145,13 @@ var $fb = function() {
     };
 
     that.subscribe = function(event, handler) {
-        log("FB: subscribe");
-        FB.Event.subscribe(event, handler);
+        log("FB: subscribe: event: " + event);
+        FB.Event.subscribe(event, _on_event(event, handler));
     };
 
     that.unsubscribe = function(event, handler) {
-        log("FB: unsubscribe");
-        FB.Event.unsubscribe(event, handler);
+        log("FB: unsubscribe: event: " + event);
+        FB.Event.unsubscribe(event, _on_event(event, handler));
     };
 
     // Private Methods
@@ -210,6 +210,14 @@ var $fb = function() {
     var _on_logout = function(response) {
         log("FB: _on_logout");
         that.on_logout(response);
+    };
+
+    var _on_event = function(event, handler) {
+        log("FB: _on_event");
+        return function(response) {
+            log("FB: _on_event: response: " + response);
+            handler(event, response);
+        };
     };
 
     var _on_status_change_authorized = function() {

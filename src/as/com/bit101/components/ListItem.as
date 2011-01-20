@@ -104,7 +104,7 @@ package com.bit101.components
 
             if(_data == null) return;
 
-			if(_data is String)
+			if (_data is String)
 			{
                 _label.text = _data as String;
 			}

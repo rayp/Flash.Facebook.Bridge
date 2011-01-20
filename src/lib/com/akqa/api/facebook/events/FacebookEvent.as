@@ -12,7 +12,12 @@ package com.akqa.api.facebook.events
 		public static const LOGGED_OUT : String = "com.akqa.api.facebook.events.FacebookEvent.LOGGED_OUT";
 		public static const LOGIN_CHANGE : String = "com.akqa.api.facebook.events.FacebookEvent.LOGIN_CHANGE";
 		// Facebook Routines
-		public static const USER : String = "com.akqa.api.facebook.events.FacebookEvent.USER";
+		public static const OBJECT : String = "com.akqa.api.facebook.events.FacebookEvent.OBJECT";
+		public static const PICTURE : String = "com.akqa.api.facebook.events.FacebookEvent.PICTURE";
+		public static const STATUSES : String = "com.akqa.api.facebook.events.FacebookEvent.STATUSES";
+		public static const PROFILE_FEED : String = "com.akqa.api.facebook.events.FacebookEvent.PROFILE_FEED";
+		public static const NEWS_FEED : String = "com.akqa.api.facebook.events.FacebookEvent.NEWS_FEED";
+		public static const LIKES : String = "com.akqa.api.facebook.events.FacebookEvent.LIKES";
 		public static const FRIENDS : String = "com.akqa.api.facebook.events.FacebookEvent.USER";
 		public static const POST : String = "com.akqa.api.facebook.events.FacebookEvent.POST";
 		public static const PUBLISH : String = "com.akqa.api.facebook.events.FacebookEvent.PUBLISH";

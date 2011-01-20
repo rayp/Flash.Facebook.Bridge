@@ -4,6 +4,7 @@ package
 	import com.akqa.api.facebook.events.FacebookEvent;
 	import com.akqa.utils.JSBridge;
 	import com.akqa.views.MainView;
+
 	import flash.display.Sprite;
 	import flash.events.Event;
 

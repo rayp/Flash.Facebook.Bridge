@@ -1,7 +1,6 @@
 package com.akqa.api.facebook.helpers
 {
 	import com.akqa.api.facebook.events.FacebookEvent;
-	import com.akqa.api.facebook.events.NativeFacebookEvent;
 	import com.akqa.api.facebook.net.FacebookRequest;
 
 	import flash.events.Event;
@@ -13,12 +12,11 @@ package com.akqa.api.facebook.helpers
 	public class FacebookAPI 
 	extends EventDispatcher
 	{
-		private static var _instance : FacebookAPI;
+		protected static var _instance : FacebookAPI;
 		public static var GRAPH_URL : String = "https://graph.facebook.com";
-		private static var FB_UI : String = "FB.ui";
-		private static var FB_EVENT : String = "FB.event";
-		private var _accessToken : String = "";
-		private var _openRequests : Dictionary = new Dictionary();
+		protected static var FB_UI : String = "FB.ui";
+		protected var _accessToken : String = "";
+		protected var _openRequests : Dictionary = new Dictionary();
 
 		public function FacebookAPI( se : SE )
 		{
@@ -30,8 +28,9 @@ package com.akqa.api.facebook.helpers
 			return _instance || ( _instance = new FacebookAPI( new SE() ) );
 		}
 
-		public function api( method : String, callbacks : * = null, params : * = null, requestMethod : String = 'GET' ) : void
+		public function api( method : String = null, callbacks : * = null, params : * = null, requestMethod : String = "GET" ) : void
 		{
+			method = ( method || "" );
 			method = ( method.indexOf( "/" ) != 0 ) ? "/" + method : method;
 
 			if (!params)
@@ -52,16 +51,6 @@ package com.akqa.api.facebook.helpers
 			ExternalInterface.call( FB_UI, params, callback );
 		}
 
-		public function subscribe( event : NativeFacebookEvent, handler : Function ) : void
-		{
-			ExternalInterface.call( FB_EVENT + ".subscribe", event.type, handler );
-		}
-
-		public function unsubscribe( event : NativeFacebookEvent, handler : Function ) : void
-		{
-			ExternalInterface.call( FB_EVENT + ".unsubscribe", event.type, handler );
-		}
-
 		public function set accessToken( value : String ) : void
 		{
 			_accessToken = value;
@@ -72,7 +61,7 @@ package com.akqa.api.facebook.helpers
 		 * internal
 		 * 
 		 */
-		private function parseCallbacks( callbacks : *, result : Object, error : Object ) : void
+		protected function parseCallbacks( callbacks : *, result : Object, error : Object ) : void
 		{
 			if ( callbacks is Array )
 			{
@@ -86,11 +75,11 @@ package com.akqa.api.facebook.helpers
 			}
 		}
 
-		private function executeCallback( callback : *, result : Object, error : Object ) : void
+		protected function executeCallback( callback : *, result : Object, error : Object ) : void
 		{
 			if ( callback is Event )
 			{
-				trace( 'callback is Event' );
+				// trace( "callback is Event" );
 
 				if ( callback is FacebookEvent )
 					FacebookEvent( callback ).response = result || error;
@@ -99,7 +88,8 @@ package com.akqa.api.facebook.helpers
 			}
 			else if ( callback is Function )
 			{
-				trace( 'callback is Function' );
+				// trace( "callback is Function" );
+
 				callback( result, error );
 			}
 			else
