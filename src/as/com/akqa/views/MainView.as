@@ -251,12 +251,26 @@ extends Panel
 
 		_textArea.text = _data.label;
 
-		if ( _data.pictureBitmap ) return;
-
-		new SWFLoader( _data.pictureUrl, { onComplete:function( event : LoaderEvent ) : void
+		if ( _data.pictureBitmap )
 		{
-			_picture.content.addChild( SWFLoader( event.target ).rawContent );
-		} } ).load();
+			updatePicture( _data.pictureBitmap );
+		}
+		else
+		{
+			new SWFLoader( _data.pictureUrl, { onComplete:function( event : LoaderEvent ) : void
+			{
+				_data.pictureBitmap = SWFLoader( event.target ).rawContent;
+
+				updatePicture( _data.pictureBitmap );
+			} } ).load();
+		}
+	}
+
+	private function updatePicture( bitmap : Bitmap ) : void
+	{
+		if ( _picture.content.numChildren == 1 )
+			_picture.content.removeChildAt( 0 );
+		_picture.content.addChild( bitmap );
 	}
 
 	override protected function init() : void
