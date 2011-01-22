@@ -2,24 +2,28 @@ package com.akqa.api.facebook.helpers
 {
 	import com.akqa.api.facebook.events.FacebookEvent;
 	import com.akqa.api.facebook.events.NativeFacebookEvent;
-	import com.maccherone.json.JSON;
 
 	import flash.events.EventDispatcher;
 	import flash.external.ExternalInterface;
-	import flash.utils.Dictionary;
 
 	public class FacebookAuth 
 	extends EventDispatcher
 	{
 		protected static var _instance : FacebookAuth;
 		protected static var FBAS : String = "$fbas";
-		protected var _jsCallbacks : Dictionary = new Dictionary();
 
+		// protected var _jsCallbacks : Dictionary = new Dictionary();
 		public function FacebookAuth( se : SE )
 		{
 			super();
 
 			se;
+
+			ExternalInterface.addCallback( "on_fb_ready", onReady );
+			ExternalInterface.addCallback( "on_fb_logged_in", onLoggedIn );
+			ExternalInterface.addCallback( "on_fb_login_cancel", onLoginCancel );
+			ExternalInterface.addCallback( "on_fb_logged_out", onLoggedOut );
+			ExternalInterface.addCallback( "on_fb_login_change", onLoginChange );
 		}
 
 		/**
@@ -30,16 +34,6 @@ package com.akqa.api.facebook.helpers
 		public static function get gi() : FacebookAuth
 		{
 			return _instance || ( _instance = new FacebookAuth( new SE() ) );
-		}
-
-		public function init() : void
-		{
-			ExternalInterface.addCallback( "on_fb_ready", onReady );
-			ExternalInterface.addCallback( "on_fb_logged_in", onLoggedIn );
-			ExternalInterface.addCallback( "on_fb_login_cancel", onLoginCancel );
-			ExternalInterface.addCallback( "on_fb_logged_out", onLoggedOut );
-			ExternalInterface.addCallback( "on_fb_login_change", onLoginChange );
-			ExternalInterface.addCallback( "on_fb_event", onEvent );
 		}
 
 		public function login() : void
@@ -68,13 +62,10 @@ package com.akqa.api.facebook.helpers
 		public function subscribe( event : NativeFacebookEvent, handler : Function ) : void
 		{
 			// trace( "FacebookAuth.subscribe(" + event.type + ")" );
-			if ( _jsCallbacks[ event.type ] == null )
-				_jsCallbacks[ event.type ] = new Dictionary();
 
-			if ( _jsCallbacks[ event.type ][ handler ] == null )
+			if ( !FacebookCallbacks.gi.hasCallback( event.type, handler ) )
 			{
-				_jsCallbacks[ event.type ][ handler ] = handler;
-
+				FacebookCallbacks.gi.subscribe( event.type, handler );
 				ExternalInterface.call( FBAS + ".subscribe", event.type );
 			}
 		}
@@ -82,12 +73,24 @@ package com.akqa.api.facebook.helpers
 		public function unsubscribe( event : NativeFacebookEvent, handler : Function ) : void
 		{
 			// trace( "FacebookAuth.unsubscribe(" + event.type + ")" );
-			if ( _jsCallbacks[ event.type ] == null ) return;
 
-			if ( _jsCallbacks[ event.type ][ handler ] )
+			if ( FacebookCallbacks.gi.hasCallback( event.type, handler ) )
+			{
+				FacebookCallbacks.gi.unsubscribe( event.type, handler );
 				ExternalInterface.call( FBAS + ".unsubscribe", event.type );
+			}
+		}
 
-			delete _jsCallbacks[ event.type ][ handler ];
+		public function ui( method : String, data : Object, handler : Function = null, display : String = null ) : void
+		{
+			if ( handler != null && !FacebookCallbacks.gi.hasCallback( method, handler ) )
+				FacebookCallbacks.gi.subscribe( method, handler );
+
+			data.method = method;
+			if ( display )
+				data.display = display;
+
+			ExternalInterface.call( FBAS + ".ui", data );
 		}
 
 		/**
@@ -118,18 +121,6 @@ package com.akqa.api.facebook.helpers
 		protected function onLoginChange( response : Object = null ) : void
 		{
 			dispatchEvent( new FacebookEvent( FacebookEvent.LOGIN_CHANGE, response ) );
-		}
-
-		protected function onEvent( eventType : String, response : Object ) : void
-		{
-//			trace( "FacebookAuth.onEvent(" + eventType + ")" );
-			// this should be a valid FB event type
-			if ( _jsCallbacks[ eventType ] )
-			{
-				var handler : Function;
-				for each ( handler in _jsCallbacks[ eventType ] )
-					_jsCallbacks[ eventType ][ handler ]( response );
-			}
 		}
 	}
 }

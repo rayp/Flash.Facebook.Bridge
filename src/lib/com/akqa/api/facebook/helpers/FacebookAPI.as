@@ -75,7 +75,7 @@ package com.akqa.api.facebook.helpers
 			}
 		}
 
-		protected function executeCallback( callback : *, result : Object, error : Object ) : void
+		protected function executeCallback( callback : *, result : Object = null, error : Object = null ) : void
 		{
 			if ( callback is Event )
 			{
@@ -88,7 +88,7 @@ package com.akqa.api.facebook.helpers
 			}
 			else if ( callback is Function )
 			{
-				// trace( "callback is Function" );
+				trace( "callback is Function" );
 
 				callback( result, error );
 			}

@@ -5,7 +5,6 @@ package com.akqa.api.facebook
 	import com.akqa.api.facebook.events.NativeFacebookEvent;
 	import com.akqa.api.facebook.helpers.FacebookAPI;
 	import com.akqa.api.facebook.helpers.FacebookAuth;
-	import com.maccherone.json.JSON;
 
 	import flash.events.EventDispatcher;
 
@@ -44,9 +43,11 @@ package com.akqa.api.facebook
 			eventTypes.push( FacebookEvent.NEWS_FEED );
 			eventTypes.push( FacebookEvent.FRIENDS );
 			eventTypes.push( FacebookEvent.LIKES );
-			eventTypes.push( FacebookEvent.POST );
-			eventTypes.push( FacebookEvent.PUBLISH );
-			eventTypes.push( FacebookEvent.SHARE );
+
+			// UI Events ?
+			// eventTypes.push( FacebookEvent.POST );
+			// eventTypes.push( FacebookEvent.PUBLISH );
+			// eventTypes.push( FacebookEvent.SHARE );
 
 			addEventListeners( FacebookAPI.gi, onFacebookAPIEvent, eventTypes ) ;
 
@@ -59,8 +60,6 @@ package com.akqa.api.facebook
 			eventTypes.push( FacebookEvent.LOGIN_CHANGE );
 
 			addEventListeners( FacebookAuth.gi, onFacebookAuthEvent, eventTypes ) ;
-
-			FacebookAuth.gi.init();
 		}
 
 		public function login() : void
@@ -108,16 +107,32 @@ package com.akqa.api.facebook
 			callAPI( id, "/likes", callback, FacebookEvent.LIKES, params );
 		}
 
-		public function post() : void
+		public function post( message : String, link : String, description : String, name : String, caption : String, picture : String, callback : Function = null ) : void
 		{
+			var params : Object = { message:message, link:link, description:description, name:name, caption:caption, picture:picture };
+
+			callAPI( null, "/feed", callback, FacebookEvent.POST, params, "POST" );
 		}
 
-		public function publish() : void
+		public function share( url : String, callback : Function = null, display : String = null ) : void
 		{
+			FacebookAuth.gi.ui( "stream.share", { u:url }, callback, display );
 		}
 
-		public function share( url : String, callback : Function = null ) : void
+		public function publishFeed( name : String, link : String, options : Object = null, callback : Function = null ) : void
 		{
+			// options = { picture : "", caption : "", description: "", message : "" }
+
+			options = options || {};
+			options.name = name;
+			options.link = link;
+
+			FacebookAuth.gi.ui( "feed", options, callback );
+		}
+
+		public function publishStream( options : Object, callback : Function = null, display : String = null ) : void
+		{
+			FacebookAuth.gi.ui( "stream.publish", options, callback );
 		}
 
 		public function api( method : String = null, callbacks : * = null, params : * = null, requestMethod : String = "GET" ) : void
@@ -140,9 +155,9 @@ package com.akqa.api.facebook
 		 * Internal
 		 * 
 		 */
-		protected function callAPI( id : String = null, routes : String = null, callback : Function = null, event : String = null, params : * = null ) : void
+		protected function callAPI( id : String = null, routes : String = null, callback : Function = null, event : String = null, params : * = null, requestMethod : String = "GET" ) : void
 		{
-			api( ( id || "/me" ) + ( ( routes ) ? routes : "" ), [ callback, new FacebookEvent( event ) ], params );
+			api( ( id || "/me" ) + ( ( routes ) ? routes : "" ), [ callback, new FacebookEvent( event ) ], params, requestMethod );
 		}
 
 		protected function addEventListeners( dispatcher : EventDispatcher, listener : Function, eventTypes : Array ) : void
@@ -185,7 +200,7 @@ package com.akqa.api.facebook
 		protected function onFacebookAuthEvent( event : FacebookEvent ) : void
 		{
 			trace( "Facebook.onFacebookAuthEvent(" + event.type + ")" );
-//			trace( JSON.encode( event.response, true, 40 ) );
+			// trace( JSON.encode( event.response, true, 40 ) );
 
 			setFacebookSession( event.response );
 
@@ -195,15 +210,9 @@ package com.akqa.api.facebook
 		protected function onFacebookAPIEvent( event : FacebookEvent ) : void
 		{
 			trace( "Facebook.onFacebookAPIEvent(" + event.type + ")" );
-//			trace( JSON.encode( event.response, true, 40 ) );
+			// trace( JSON.encode( event.response, true, 40 ) );
 
 			dispatchEvent( event.clone() );
-		}
-
-		protected function onFacebookEvent( eventType : String, response : Object ) : void
-		{
-			trace( "Facebook.onFacebookEvent(" + eventType + ")" );
-//			trace( JSON.encode( response, true, 40 ) );
 		}
 	}
 }

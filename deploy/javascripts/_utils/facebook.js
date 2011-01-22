@@ -154,6 +154,11 @@ var $fb = function() {
         FB.Event.unsubscribe(event, _on_event(event, handler));
     };
 
+    that.ui = function(data, handler) {
+        log("FB: ui: event: " + data.method);
+        FB.ui(data, _on_event(data.method, handler));
+    }
+
     // Private Methods
     var _init_listeners = function() {
         FB.Event.subscribe('auth.sessionChange',

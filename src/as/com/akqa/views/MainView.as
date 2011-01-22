@@ -3,7 +3,9 @@ package com.akqa.views
 	import com.akqa.api.facebook.Facebook;
 	import com.akqa.api.facebook.events.FacebookEvent;
 	import com.akqa.api.facebook.events.NativeFacebookEvent;
+	import com.akqa.api.facebook.helpers.FacebookPublish;
 	import com.akqa.utils.JSBridge;
+	import com.bit101.components.HBox;
 	import com.bit101.components.List;
 	import com.bit101.components.PushButton;
 	import com.bit101.components.VBox;
@@ -20,12 +22,11 @@ package com.akqa.views
 		public static const TEXT_HEIGHT : int = IMAGE_SIZE;
 		public static const PAD : int = 5;
 		public static const PADx2 : int = PAD * 2;
+		private static const DUMMY_URL : String = "http://akqa.com";
 		private static const CONNECT : String = "Connect";
 		private static const DISCONNECT : String = "Disconnect";
 		private var _connectionBtn : PushButton;
-		private var _meBtn : PushButton;
 		private var _mePanel : ProfilePanel;
-		private var _friendsBtn : PushButton;
 		private var _friendsList : List;
 
 		public function MainView()
@@ -43,20 +44,22 @@ package com.akqa.views
 
 		private function addDisplayObjects() : void
 		{
-			var vBox : VBox = new VBox( this, 0, 0 );
+			var vBox : VBox = new VBox( this );
 			vBox.spacing = PAD;
 
-			_connectionBtn = new PushButton( vBox, 0, 0, CONNECT, onConnectionClick );
+			var buttonBox : HBox = new HBox( vBox );
+			buttonBox.spacing = PAD;
+
+			_connectionBtn = new PushButton( buttonBox, 0, 0, CONNECT, onConnectionClick );
 			_connectionBtn.toggle = true;
 
-			_meBtn = new PushButton( vBox, 0, 0, "Me", onGetUserClick );
-			_meBtn.visible = _connectionBtn.selected;
+			new PushButton( buttonBox, 0, 0, "Share", onShareClick );
+			new PushButton( buttonBox, 0, 0, "Publish Feed", onPublishFeedClick );
+			new PushButton( buttonBox, 0, 0, "Publish Stream", onPublishStreamClick );
+			new PushButton( buttonBox, 0, 0, "Post", onPostClick );
 
 			_mePanel = new ProfilePanel( vBox );
 			_mePanel.visible = false;
-
-			_friendsBtn = new PushButton( vBox, 0, 0, "Friends", onFriendsClick );
-			_friendsBtn.visible = false;
 
 			_friendsList = new List( vBox, 0, 0, [] );
 			_friendsList.visible = false;
@@ -65,18 +68,46 @@ package com.akqa.views
 			_friendsList.setSize( IMAGE_SIZE + TEXT_WIDTH + PAD + PADx2, ( TEXT_HEIGHT + PADx2 ) * 5 );
 		}
 
-		private function onGetUserClick( event : MouseEvent ) : void
+		private function onShareClick( event : MouseEvent ) : void
 		{
-			// ---- BEGIN NOTE ----
-			// Adding Facebook style callback will require handler sinature in Facebook style.
-			// E.g.
-			// onGetUserCallback( response : Object, error : Object ) : void {};
-			// It may be more intuitive to use the Event model for routine API requests.
-			// E.g.
-			Facebook.gi.addEventListener( FacebookEvent.OBJECT, onGetUserEvent );
-			// ---- END NOTE ----
+			Facebook.gi.share( DUMMY_URL, function( response : Object ) : void
+			{
+				trace( formatObject( response ) );
+			} );
+		}
 
-			Facebook.gi.getObject( null, onGetUserCallback, { fields:"id,name,picture" } );
+		private function onPublishFeedClick( event : MouseEvent ) : void
+		{
+			Facebook.gi.publishFeed( "AKQA", DUMMY_URL, null, function( response : Object ) : void
+			{
+				trace( formatObject( response ) );
+			} );
+		}
+
+		private function onPublishStreamClick( event : MouseEvent ) : void
+		{
+			var options : Object = new FacebookPublish( "CNN", "http://cnn.com" )
+			.setCaption( "This is..." )
+			.setDescription( "... CNN!" )
+			.addMedia( "image", "http://www.seeklogo.com/cnn-logo-32700.html", "http://cnn.com" )
+			.addProperty( "Category", { text:"This is news.", href:"http://cnn.com" } )
+			.addProperty( "Rating", "5 Star" )
+			.addActionLink( "Read News", "http://cnn.com" )
+			.getData();
+
+			Facebook.gi.publishStream( options, function( response : Object ) : void
+			{
+				trace( formatObject( response ) );
+			} );
+		}
+
+		private function onPostClick( event : MouseEvent ) : void
+		{
+			Facebook.gi.post( "Hey look at the news!", DUMMY_URL, "This is CNN!", "CNN", "Thsi is news.", "http://www.seeklogo.com/cnn-logo-32700.html", function( response : Object, error : Object ) : void
+			{
+				response = response || error;
+				trace( formatObject( response ) );
+			} );
 		}
 
 		private function onConnectionClick( event : MouseEvent ) : void
@@ -110,38 +141,45 @@ package com.akqa.views
 
 				_connectionBtn.label = CONNECT;
 			}
-
-			_meBtn.visible = _connectionBtn.selected;
 		}
 
 		private function onFacebookLoginCallback( response : Object ) : void
 		{
-			JSBridge.log( response );
-			trace( formatObject( response ) );
+			// JSBridge.log( response );
+			// trace( formatObject( response ) );
 		}
 
 		private function onFacebookLogoutCallback( response : Object ) : void
 		{
-			JSBridge.log( response );
-			trace( formatObject( response ) );
+			// JSBridge.log( response );
+			// trace( formatObject( response ) );
 		}
 
 		private function onFacebookLoggedIn( event : FacebookEvent ) : void
 		{
 			JSBridge.log( event.response );
 			trace( formatObject( event.response ) );
+
+			// ---- BEGIN NOTE ----
+			// Adding Facebook style callback will require handler signature in Facebook style.
+			// E.g.
+			// onGetUserCallback( response : Object, error : Object ) : void {}
+			// It may be more intuitive to use the Event model for routine API requests.
+			// E.g.
+			// Facebook.gi.addEventListener( FacebookEvent.OBJECT, onGetUserEvent );
+			// private function onGetUserEvent( event : FacebookEvent ) : void {}
+			// ---- END NOTE ----
+			Facebook.gi.getObject( null, onGetUserCallback, { fields:"id,name,picture" } );
+			Facebook.gi.getFriends( null, onGetFriendsCallback, { fields:"id,name,picture" } );
 		}
 
 		private function onFacebookLoggedOut( event : FacebookEvent ) : void
 		{
 			JSBridge.log( event.response );
 			trace( formatObject( event.response ) );
-		}
 
-		private function onGetUserEvent( event : FacebookEvent ) : void
-		{
-			JSBridge.log( event.response );
-			// trace( "MainView.onGetUserEvent : \n" + JSON.encode( event.response, true, 40 ) );
+			_mePanel.visible = false;
+			_friendsList.visible = false;
 		}
 
 		private function onGetUserCallback( response : Object, error : Object ) : void
@@ -151,13 +189,6 @@ package com.akqa.views
 
 			_mePanel.data = new ProfileData( response );
 			_mePanel.visible = true;
-
-			_friendsBtn.visible = true;
-		}
-
-		private function onFriendsClick( event : MouseEvent ) : void
-		{
-			Facebook.gi.getFriends( null, onGetFriendsCallback, { fields:"id,name,picture" } );
 		}
 
 		private function onGetFriendsCallback( response : Object, error : Object ) : void
@@ -185,8 +216,9 @@ import com.bit101.components.TextArea;
 import com.greensock.events.LoaderEvent;
 import com.greensock.loading.SWFLoader;
 
-import flash.display.Bitmap;
+import flash.display.DisplayObject;
 import flash.display.DisplayObjectContainer;
+import flash.display.Shape;
 import flash.events.Event;
 
 internal class ProfileData
@@ -194,7 +226,7 @@ internal class ProfileData
 	private var _id : String;
 	private var _name : String;
 	private var _pictureUrl : String;
-	private var _pictureBitmap : Bitmap;
+	private var _pictureImage : DisplayObject;
 
 	public function ProfileData( data : Object = null )
 	{
@@ -211,14 +243,14 @@ internal class ProfileData
 		return _pictureUrl;
 	}
 
-	public function get pictureBitmap() : Bitmap
+	public function get pictureImage() : DisplayObject
 	{
-		return _pictureBitmap;
+		return _pictureImage;
 	}
 
-	public function set pictureBitmap( value : Bitmap ) : void
+	public function set pictureImage( value : DisplayObject ) : void
 	{
-		_pictureBitmap = value;
+		_pictureImage = value;
 	}
 
 	public function update( data : Object ) : void
@@ -251,26 +283,34 @@ extends Panel
 
 		_textArea.text = _data.label;
 
-		if ( _data.pictureBitmap )
+		if ( _data.pictureImage )
 		{
-			updatePicture( _data.pictureBitmap );
+			updatePicture( _data.pictureImage );
 		}
 		else
 		{
-			new SWFLoader( _data.pictureUrl, { onComplete:function( event : LoaderEvent ) : void
+			new SWFLoader( _data.pictureUrl, { onError:function( event : LoaderEvent ) : void
 			{
-				_data.pictureBitmap = SWFLoader( event.target ).rawContent;
+				var shape : Shape = new Shape();
+				shape.graphics.beginFill( 0xEEEEEE );
+				shape.graphics.drawRect( 0, 0, 50, 50 );
+				shape.graphics.endFill();
 
-				updatePicture( _data.pictureBitmap );
+				_data.pictureImage = shape;
+			}, onComplete:function( event : LoaderEvent ) : void
+			{
+				_data.pictureImage = SWFLoader( event.target ).rawContent;
+
+				updatePicture( _data.pictureImage );
 			} } ).load();
 		}
 	}
 
-	private function updatePicture( bitmap : Bitmap ) : void
+	private function updatePicture( image : DisplayObject ) : void
 	{
 		if ( _picture.content.numChildren == 1 )
 			_picture.content.removeChildAt( 0 );
-		_picture.content.addChild( bitmap );
+		_picture.content.addChild( image );
 	}
 
 	override protected function init() : void

@@ -81,6 +81,10 @@ var $fbas = function() {
         log("FBAS: unsubscribe: event: " + event);
         $fb.unsubscribe(event, _on_event);
     };
+    that.ui = function(data) {
+        log("FBAS: ui: event: " + data.method);
+        $fb.ui(data, _on_event);
+    };
     that.get_login_status = function() {
         log("FBAS: get_login_status");
         $fb.get_login_status();
