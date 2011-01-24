@@ -3,6 +3,7 @@ package com.akqa.views
 	import com.akqa.api.facebook.Facebook;
 	import com.akqa.api.facebook.events.FacebookEvent;
 	import com.akqa.api.facebook.events.NativeFacebookEvent;
+	import com.akqa.api.facebook.helpers.FacebookPost;
 	import com.akqa.api.facebook.helpers.FacebookPublish;
 	import com.akqa.utils.JSBridge;
 	import com.bit101.components.HBox;
@@ -89,7 +90,7 @@ package com.akqa.views
 			var options : Object = new FacebookPublish( "CNN", "http://cnn.com" )
 			.setCaption( "This is..." )
 			.setDescription( "... CNN!" )
-			.addMedia( "image", "http://www.seeklogo.com/cnn-logo-32700.html", "http://cnn.com" )
+			.addMedia( "image", "http://www.seeklogo.com/images/C/CNN-logo-6DA92A5BFF-seeklogo.com.gif", "http://cnn.com" )
 			.addProperty( "Category", { text:"This is news.", href:"http://cnn.com" } )
 			.addProperty( "Rating", "5 Star" )
 			.addActionLink( "Read News", "http://cnn.com" )
@@ -103,9 +104,15 @@ package com.akqa.views
 
 		private function onPostClick( event : MouseEvent ) : void
 		{
-			Facebook.gi.post( "Hey look at the news!", DUMMY_URL, "This is CNN!", "CNN", "Thsi is news.", "http://www.seeklogo.com/cnn-logo-32700.html", function( response : Object, error : Object ) : void
+			var options : Object = new FacebookPost( "Hey look at the news!", "http://cnn.com" )
+			.setName( "CNN" )
+			.setDescription( "This is CNN!" )
+			.setPicture( "http://www.seeklogo.com/images/C/CNN-logo-6DA92A5BFF-seeklogo.com.gif" )
+			.setCaption( "This is some news." )
+			.getData();
+
+			Facebook.gi.post( options, function( response : Object, error : Object ) : void
 			{
-				response = response || error;
 				trace( formatObject( response ) );
 			} );
 		}

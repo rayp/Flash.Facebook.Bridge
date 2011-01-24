@@ -12,6 +12,7 @@ package com.akqa.api.facebook
 	extends EventDispatcher
 	{
 		protected static var _instance : Facebook;
+		protected static var _isConnected : Boolean;
 
 		public function Facebook( se : SE )
 		{
@@ -107,10 +108,8 @@ package com.akqa.api.facebook
 			callAPI( id, "/likes", callback, FacebookEvent.LIKES, params );
 		}
 
-		public function post( message : String, link : String, description : String, name : String, caption : String, picture : String, callback : Function = null ) : void
+		public function post( params : Object, callback : Function = null ) : void
 		{
-			var params : Object = { message:message, link:link, description:description, name:name, caption:caption, picture:picture };
-
 			callAPI( null, "/feed", callback, FacebookEvent.POST, params, "POST" );
 		}
 
@@ -199,7 +198,7 @@ package com.akqa.api.facebook
 		 */
 		protected function onFacebookAuthEvent( event : FacebookEvent ) : void
 		{
-			trace( "Facebook.onFacebookAuthEvent(" + event.type + ")" );
+			// trace( "Facebook.onFacebookAuthEvent(" + event.type + ")" );
 			// trace( JSON.encode( event.response, true, 40 ) );
 
 			setFacebookSession( event.response );
@@ -209,7 +208,7 @@ package com.akqa.api.facebook
 
 		protected function onFacebookAPIEvent( event : FacebookEvent ) : void
 		{
-			trace( "Facebook.onFacebookAPIEvent(" + event.type + ")" );
+			// trace( "Facebook.onFacebookAPIEvent(" + event.type + ")" );
 			// trace( JSON.encode( event.response, true, 40 ) );
 
 			dispatchEvent( event.clone() );
