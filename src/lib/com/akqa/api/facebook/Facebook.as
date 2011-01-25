@@ -12,7 +12,6 @@ package com.akqa.api.facebook
 	extends EventDispatcher
 	{
 		protected static var _instance : Facebook;
-		protected static var _isConnected : Boolean;
 
 		public function Facebook( se : SE )
 		{
@@ -71,6 +70,11 @@ package com.akqa.api.facebook
 		public function logout() : void
 		{
 			FacebookAuth.gi.logout();
+		}
+
+		public function get isConnected() : Boolean
+		{
+			return FacebookAuth.gi.isConnected;
 		}
 
 		public function getObject( id : String = null, callback : Function = null, params : * = null ) : void
@@ -154,9 +158,30 @@ package com.akqa.api.facebook
 		 * Internal
 		 * 
 		 */
-		protected function callAPI( id : String = null, routes : String = null, callback : Function = null, event : String = null, params : * = null, requestMethod : String = "GET" ) : void
+		protected function callAPI( id : String = null, routes : String = null, callback : Function = null, eventType : String = null, params : * = null, requestMethod : String = "GET" ) : void
 		{
-			api( ( id || "/me" ) + ( ( routes ) ? routes : "" ), [ callback, new FacebookEvent( event ) ], params, requestMethod );
+			var method : String = ( id || "/me" ) + ( ( routes ) ? routes : "" );
+			var callbacks : Array = [ callback, new FacebookEvent( eventType ) ];
+
+			if ( isConnected )
+			{
+//				trace( "User is connected, call API method: " + method );
+				api( method, callbacks, params, requestMethod );
+			}
+			else
+			{
+//				trace( "User is not connected, login first" );
+				var func : Function = function( event : FacebookEvent ) : void
+				{
+//					trace( "User logged in, call API method :" + method );
+					FacebookAuth.gi.removeEventListener( FacebookEvent.LOGGED_IN, func );
+
+					api( method, callbacks, params, requestMethod );
+				};
+
+				FacebookAuth.gi.addEventListener( FacebookEvent.LOGGED_IN, func );
+				FacebookAuth.gi.login();
+			}
 		}
 
 		protected function addEventListeners( dispatcher : EventDispatcher, listener : Function, eventTypes : Array ) : void

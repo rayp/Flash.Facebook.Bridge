@@ -11,6 +11,7 @@ package com.akqa.api.facebook.helpers
 	{
 		protected static var _instance : FacebookAuth;
 		protected static var FBAS : String = "$fbas";
+		private var _isConnected : Boolean;
 
 		// protected var _jsCallbacks : Dictionary = new Dictionary();
 		public function FacebookAuth( se : SE )
@@ -59,6 +60,11 @@ package com.akqa.api.facebook.helpers
 			return ExternalInterface.call( FBAS + ".get_session" );
 		}
 
+		public function get isConnected() : Boolean
+		{
+			return _isConnected;
+		}
+
 		public function subscribe( event : NativeFacebookEvent, handler : Function ) : void
 		{
 			// trace( "FacebookAuth.subscribe(" + event.type + ")" );
@@ -105,6 +111,8 @@ package com.akqa.api.facebook.helpers
 
 		protected function onLoggedIn( response : Object = null ) : void
 		{
+			_isConnected = true;
+			
 			dispatchEvent( new FacebookEvent( FacebookEvent.LOGGED_IN, response ) );
 		}
 
@@ -115,6 +123,8 @@ package com.akqa.api.facebook.helpers
 
 		protected function onLoggedOut( response : Object = null ) : void
 		{
+			_isConnected = false;
+			
 			dispatchEvent( new FacebookEvent( FacebookEvent.LOGGED_OUT, response ) );
 		}
 
