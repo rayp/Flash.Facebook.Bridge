@@ -7,9 +7,6 @@
 						' src="http://www.adobe.com/images/shared/download_buttons/get_adobe_flash_player.png"' +
 						'>' +
 						'</a>';
-	
-	// Working to remove this Adobe code
-	FBAS.setSWFObjectID($f.id);
     
 	// Init Flash & Bridge
 	$fbas.init();
