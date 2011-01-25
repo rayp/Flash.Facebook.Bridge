@@ -1,8 +1,7 @@
 ﻿package com.akqa.api.facebook.net
 {
 	import com.adobe.images.PNGEncoder;
-	import com.adobe.serialization.json.JSON;
-	import com.facebook.graph.utils.PostRequest;
+	import com.maccherone.json.JSON;
 
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
